@@ -1058,6 +1058,13 @@
       "when": 1788517619226,
       "tag": "0150_keep_1333_summary_covering_index",
       "breakpoints": true
+    },
+    {
+      "idx": 151,
+      "version": "7",
+      "when": 1788781975696,
+      "tag": "0151_keep_1042_execution_retention_indexes",
+      "breakpoints": true
     }
   ]
 }
