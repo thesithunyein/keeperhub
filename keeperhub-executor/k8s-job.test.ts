@@ -494,6 +494,40 @@ describe("createWorkflowJob", () => {
     expect(getEnvVar(getJobEnvVars(job), "KH_CORRELATION_ID")).toBeUndefined();
   });
 
+  it("accepts a correlation id at the 63-character label limit", async () => {
+    const atLimit = "a".repeat(63);
+    await createWorkflowJob({
+      workflowId: "wf-1",
+      executionId: "exec-1234abcd",
+      input: {},
+      triggerType: "event",
+      correlationId: atLimit,
+    });
+
+    const job = getSubmittedJob();
+    expect(job.metadata?.labels?.["correlation-id"]).toBe(atLimit);
+    expect(getEnvVar(getJobEnvVars(job), "KH_CORRELATION_ID")).toBe(atLimit);
+  });
+
+  it.each([
+    ["one character over the limit", "a".repeat(64)],
+    ["a leading separator", "-abcd1234"],
+    ["a trailing separator", "abcd1234."],
+    ["a trailing newline", "abcd1234\n"],
+  ])("drops a correlation id with %s", async (_case, correlationId) => {
+    await createWorkflowJob({
+      workflowId: "wf-1",
+      executionId: "exec-1234abcd",
+      input: {},
+      triggerType: "event",
+      correlationId,
+    });
+
+    const job = getSubmittedJob();
+    expect(job.metadata?.labels?.["correlation-id"]).toBeUndefined();
+    expect(getEnvVar(getJobEnvVars(job), "KH_CORRELATION_ID")).toBeUndefined();
+  });
+
   it("omits the latency env anchors when no stage stamps are supplied", async () => {
     await createWorkflowJob({
       workflowId: "wf-1",
